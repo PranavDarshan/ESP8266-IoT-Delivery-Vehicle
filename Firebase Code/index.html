@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coordinate Display</title>
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f0f0f0;
+            font-family: Arial, sans-serif;
+        }
+        .container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .buttons {
+            margin-bottom: 20px;
+        }
+        .button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #display {
+            font-size: 24px;
+            margin: 20px;
+            padding: 20px;
+            border: 2px solid #333;
+            border-radius: 5px;
+            background-color: #fff;
+            width: 200px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+        import { getDatabase, ref, set } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-database.js";
+        import { getAnalytics } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-analytics.js";
+        
+        const firebaseConfig = {
+            //replace here
+        };
+      
+        const app = initializeApp(firebaseConfig);
+        const database = getDatabase(app);
+        const analytics = getAnalytics(app);
+
+        let x = 50;
+        let y = 50;
+
+        function updateDisplay() {
+            document.getElementById('display').innerText = `x: ${x}, y: ${y}`;
+        }
+
+        function sendDataToFirebase() {
+            const referenceX = ref(database, 'joystick/x');
+            const referenceY = ref(database, 'joystick/y');
+
+            set(referenceX, x)
+                .then(() => console.log("X coordinate sent to Firebase."))
+                .catch((error) => console.error("Error sending X coordinate: ", error));
+
+            set(referenceY, y)
+                .then(() => console.log("Y coordinate sent to Firebase."))
+                .catch((error) => console.error("Error sending Y coordinate: ", error));
+        }
+
+        function delay(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        window.move = async function(direction) {  // Make the function async
+            switch (direction) {
+                case 'up':
+                    y = 100;
+                    x = 50;
+                    break;
+                case 'down':
+                    y = 0;
+                    x = 50;
+                    break;
+                case 'left':
+                    x = 0;
+                    y = 50;  // Add a 2-second delay
+                    break;
+                case 'right':
+                    x = 100;
+                    y = 50;
+                    break;
+                case 'stop':
+                    x = 50;
+                    y = 50;
+                    break;
+                default:
+                    x = 50;
+                    y = 50;
+            }
+            updateDisplay();
+            sendDataToFirebase();
+        };
+
+        document.getElementById('display').innerText = `x: ${x}, y: ${y}`;
+    </script>
+    <div class="container">
+        <div class="buttons">
+            <button class="button" onclick="move('stop')">Stop</button>
+            <button class="button" onclick="move('up')">Up</button>
+            <button class="button" onclick="move('down')">Down</button>
+            <button class="button" onclick="move('left')">Left</button>
+            <button class="button" onclick="move('right')">Right</button>
+        </div>
+        <div id="display">x: 50, y: 50</div>
+    </div>
+</body>
+</html>
